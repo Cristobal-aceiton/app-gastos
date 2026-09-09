@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.app_gastos_vert_chi.twa",
+        "sha256_cert_fingerprints": ["AC:75:93:2D:3E:F7:EF:C1:51:BA:76:A9:64:0B:EC:F6:72:1E:A4:E8:F8:11:A1:87:0E:8E:63:31:90:32:91:3B"]
+      }
+    }]

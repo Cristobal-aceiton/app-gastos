@@ -39,10 +39,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   init: async () => {
     const { data } = await supabase.auth.getSession()
-    set({ session: data.session, isLoading: false })
+    set({ session: data.session })
+    // Importante: `isLoading` se mantiene en `true` hasta que el perfil
+    // también haya cargado (no solo la sesión). Si lo bajábamos antes,
+    // ProtectedRoute veía `profile: null` por un instante y `needsOnboarding`
+    // interpretaba eso como "sin onboarding", mandando a /onboarding por
+    // ~1s hasta que el perfil real llegaba — el parpadeo molesto.
     if (data.session?.user) {
       await get().fetchProfile(data.session.user.id)
     }
+    set({ isLoading: false })
 
     supabase.auth.onAuthStateChange(async (_event, session) => {
       set({ session })
