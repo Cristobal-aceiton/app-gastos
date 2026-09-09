@@ -1,0 +1,35 @@
+name: CI
+
+# claude.md, Fase 12.4: correr lint y tests automáticamente en cada push/PR,
+# para no depender de correrlos manualmente antes de cada entrega.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lint (oxlint)
+        run: npm run lint
+
+      - name: Chequeo de tipos
+        run: npx tsc -b --noEmit
+
+      - name: Tests (Vitest)
+        run: npm run test
+
+      - name: Build de producción
+        run: npm run build
