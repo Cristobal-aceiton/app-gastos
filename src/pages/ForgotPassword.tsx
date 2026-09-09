@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { Mail } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import AuthShell from '../components/AuthShell'
 import { TextField } from '../components/fields'
@@ -52,6 +53,7 @@ export default function ForgotPassword() {
             type="email"
             autoComplete="email"
             placeholder="tucorreo@ejemplo.com"
+            icon={<Mail size={18} />}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />

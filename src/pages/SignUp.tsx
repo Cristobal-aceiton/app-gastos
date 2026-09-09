@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Mail, Lock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
 import AuthShell from '../components/AuthShell'
 import { TextField, PasswordField } from '../components/fields'
 import PrimaryButton from '../components/PrimaryButton'
+import GoogleButton from '../components/GoogleButton'
 
 export default function SignUp() {
   const session = useAuthStore((s) => s.session)
@@ -80,6 +82,7 @@ export default function SignUp() {
           type="email"
           autoComplete="email"
           placeholder="tucorreo@ejemplo.com"
+          icon={<Mail size={18} />}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -87,6 +90,7 @@ export default function SignUp() {
           label="Contraseña"
           autoComplete="new-password"
           placeholder="Mínimo 6 caracteres"
+          icon={<Lock size={18} />}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -94,6 +98,7 @@ export default function SignUp() {
           label="Confirma tu contraseña"
           autoComplete="new-password"
           placeholder="Repite tu contraseña"
+          icon={<Lock size={18} />}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
@@ -103,6 +108,14 @@ export default function SignUp() {
         <PrimaryButton type="submit" loading={loading} className="mt-2">
           Crear cuenta
         </PrimaryButton>
+
+        <div className="my-1 flex items-center gap-3 text-xs text-(--color-ink-faint)">
+          <span className="h-px flex-1 bg-(--color-border)" />
+          o continúa con
+          <span className="h-px flex-1 bg-(--color-border)" />
+        </div>
+
+        <GoogleButton />
       </form>
     </AuthShell>
   )

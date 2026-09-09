@@ -14,7 +14,7 @@ export default function AuthShell({
   footer?: ReactNode
 }) {
   return (
-    <div className="app-shell-bg flex min-h-dvh flex-col justify-center px-6 py-12 text-(--color-ink)">
+    <div className="app-shell-bg flex min-h-svh flex-col justify-center px-6 py-12 text-(--color-ink)">
       {/* Fase 7: transición de entrada al navegar entre Login / Sign Up / Forgot password */}
       <PageTransition>
         <div className="mx-auto w-full max-w-sm">
@@ -26,7 +26,7 @@ export default function AuthShell({
             <p className="mt-1 text-sm text-(--color-ink-muted)">{subtitle}</p>
           </div>
 
-          <div className="mt-8">{children}</div>
+          <div className="card-glass mt-8 rounded-3xl p-5">{children}</div>
 
           {footer && <div className="mt-8 text-center text-sm text-(--color-ink-muted)">{footer}</div>}
         </div>

@@ -117,7 +117,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-(--color-bg) px-6 pb-10 pt-12 text-(--color-ink)">
+    <div className="flex min-h-svh flex-col bg-(--color-bg) px-6 pb-10 pt-12 text-(--color-ink)">
       <div className="mx-auto w-full max-w-sm flex-1">
         {/* Barra de progreso — es una secuencia real de 3 pasos, así que el indicador aporta información */}
         <div className="flex gap-1.5">

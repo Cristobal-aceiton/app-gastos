@@ -23,7 +23,7 @@ const queryClient = new QueryClient()
 
 function RouteFallback() {
   // Pantalla en blanco del color de fondo (evita parpadeo blanco mientras carga el chunk)
-  return <div className="min-h-dvh bg-(--color-bg)" />
+  return <div className="min-h-svh bg-(--color-bg)" />
 }
 
 export default function App() {

@@ -34,10 +34,15 @@
 
 html {
   color-scheme: dark;
+  /* Fondo de respaldo fijo en html/body: no depende de svh/dvh ni del alto
+     de ningún contenedor, así que nunca hay un frame en blanco cuando el
+     teclado abre y algo más abajo se reflowea. */
+  background-color: var(--color-bg);
+  background-image: radial-gradient(circle at 50% 0%, rgba(0, 212, 170, 0.05), transparent 70%);
 }
 
 body {
-  background-color: var(--color-bg);
+  background-color: transparent;
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -45,7 +50,7 @@ body {
 }
 
 #root {
-  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 /* Fase 10: fondo general con gradiente radial sutil detrás del contenido,

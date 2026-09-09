@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Mail, Lock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
 import AuthShell from '../components/AuthShell'
 import { TextField, PasswordField } from '../components/fields'
 import PrimaryButton from '../components/PrimaryButton'
+import GoogleButton from '../components/GoogleButton'
 
 export default function Login() {
   const session = useAuthStore((s) => s.session)
@@ -63,6 +65,7 @@ export default function Login() {
           type="email"
           autoComplete="email"
           placeholder="tucorreo@ejemplo.com"
+          icon={<Mail size={18} />}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -70,6 +73,7 @@ export default function Login() {
           label="Contraseña"
           autoComplete="current-password"
           placeholder="••••••••"
+          icon={<Lock size={18} />}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -85,6 +89,14 @@ export default function Login() {
         <PrimaryButton type="submit" loading={loading} className="mt-2">
           Iniciar sesión
         </PrimaryButton>
+
+        <div className="my-1 flex items-center gap-3 text-xs text-(--color-ink-faint)">
+          <span className="h-px flex-1 bg-(--color-border)" />
+          o continúa con
+          <span className="h-px flex-1 bg-(--color-border)" />
+        </div>
+
+        <GoogleButton />
       </form>
     </AuthShell>
   )

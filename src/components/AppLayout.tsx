@@ -12,7 +12,7 @@ export default function AppLayout() {
   useSubscriptionRunner(session?.user.id, profile?.is_premium)
 
   return (
-    <div className="app-shell-bg mx-auto flex min-h-dvh max-w-md flex-col">
+    <div className="app-shell-bg mx-auto flex min-h-svh max-w-md flex-col">
       <main className="flex-1 overflow-y-auto px-5 pb-28 pt-8">
         {/* Fase 7: transición suave entre pantallas del tab bar, sin desmontar BottomNav */}
         <AnimatePresence mode="wait" initial={false}>

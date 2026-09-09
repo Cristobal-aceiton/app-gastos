@@ -1,15 +1,17 @@
-import { forwardRef, useState } from 'react'
-import type { InputHTMLAttributes } from 'react'
+import { forwardRef, useEffect, useRef, useState } from 'react'
+import type { InputHTMLAttributes, ReactNode } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { digitsOnly, formatAmountDisplay } from '../lib/format'
 
 interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
   error?: string
+  /** Ícono decorativo a la izquierda del campo (ej. `<Mail size={18} />`). */
+  icon?: ReactNode
 }
 
 export const TextField = forwardRef<HTMLInputElement, FieldProps>(function TextField(
-  { label, error, id, ...props },
+  { label, error, id, icon, ...props },
   ref
 ) {
   const inputId = id ?? label.toLowerCase().replace(/\s+/g, '-')
@@ -18,14 +20,19 @@ export const TextField = forwardRef<HTMLInputElement, FieldProps>(function TextF
       <label htmlFor={inputId} className="mb-1.5 block text-sm text-(--color-ink-muted)">
         {label}
       </label>
-      <input
-        id={inputId}
-        ref={ref}
-        className={`w-full rounded-2xl border bg-(--color-surface) px-4 py-3 text-(--color-ink) outline-none transition placeholder:text-(--color-ink-faint) focus:border-(--color-mint) ${
+      <div
+        className={`flex items-center gap-2.5 rounded-(--radius-pill) border bg-(--color-surface) px-4 py-3 transition focus-within:border-(--color-mint) ${
           error ? 'border-(--color-expense)' : 'border-(--color-border)'
         }`}
-        {...props}
-      />
+      >
+        {icon && <span className="shrink-0 text-(--color-ink-faint)">{icon}</span>}
+        <input
+          id={inputId}
+          ref={ref}
+          className="w-full bg-transparent text-(--color-ink) outline-none placeholder:text-(--color-ink-faint)"
+          {...props}
+        />
+      </div>
       {error && <p className="mt-1.5 text-xs text-(--color-expense)">{error}</p>}
     </div>
   )
@@ -43,6 +50,20 @@ interface AmountFieldProps {
 
 /** Campo grande de monto: muestra separador de miles mientras se escribe, guarda solo dígitos. */
 export function AmountField({ label = 'Monto', value, onChange, error, autoFocus }: AmountFieldProps) {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!autoFocus) return
+    // No usamos el atributo nativo `autoFocus`: dispara el teclado en el
+    // mismo frame que el mount, justo cuando la animación de entrada de
+    // página (framer-motion, ~220ms) también está corriendo. Dos cambios
+    // de layout a la vez = el "parpadeo" del fondo. Esperamos a que la
+    // transición termine antes de enfocar, para que el teclado suba solo,
+    // sin pelear con la animación.
+    const timer = setTimeout(() => inputRef.current?.focus(), 260)
+    return () => clearTimeout(timer)
+  }, [autoFocus])
+
   return (
     <div>
       <label className="mb-1.5 block text-sm text-(--color-ink-muted)">{label}</label>
@@ -53,8 +74,8 @@ export function AmountField({ label = 'Monto', value, onChange, error, autoFocus
       >
         <span className="text-2xl font-semibold text-(--color-ink-muted)">$</span>
         <input
+          ref={inputRef}
           inputMode="numeric"
-          autoFocus={autoFocus}
           value={formatAmountDisplay(value)}
           onChange={(e) => onChange(digitsOnly(e.target.value))}
           placeholder="0"
@@ -68,7 +89,7 @@ export function AmountField({ label = 'Monto', value, onChange, error, autoFocus
 }
 
 export const PasswordField = forwardRef<HTMLInputElement, FieldProps>(function PasswordField(
-  { label, error, id, ...props },
+  { label, error, id, icon, ...props },
   ref
 ) {
   const [visible, setVisible] = useState(false)
@@ -78,20 +99,23 @@ export const PasswordField = forwardRef<HTMLInputElement, FieldProps>(function P
       <label htmlFor={inputId} className="mb-1.5 block text-sm text-(--color-ink-muted)">
         {label}
       </label>
-      <div className="relative">
+      <div
+        className={`flex items-center gap-2.5 rounded-(--radius-pill) border bg-(--color-surface) px-4 py-3 transition focus-within:border-(--color-mint) ${
+          error ? 'border-(--color-expense)' : 'border-(--color-border)'
+        }`}
+      >
+        {icon && <span className="shrink-0 text-(--color-ink-faint)">{icon}</span>}
         <input
           id={inputId}
           ref={ref}
           type={visible ? 'text' : 'password'}
-          className={`w-full rounded-2xl border bg-(--color-surface) px-4 py-3 pr-11 text-(--color-ink) outline-none transition placeholder:text-(--color-ink-faint) focus:border-(--color-mint) ${
-            error ? 'border-(--color-expense)' : 'border-(--color-border)'
-          }`}
+          className="w-full bg-transparent text-(--color-ink) outline-none placeholder:text-(--color-ink-faint)"
           {...props}
         />
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          className="absolute inset-y-0 right-3 flex items-center text-(--color-ink-faint)"
+          className="shrink-0 text-(--color-ink-faint)"
           aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
         >
           {visible ? <EyeOff size={18} /> : <Eye size={18} />}

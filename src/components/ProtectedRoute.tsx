@@ -7,7 +7,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   if (isLoading) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-(--color-bg) text-(--color-ink-muted)">
+      <div className="flex h-svh items-center justify-center bg-(--color-bg) text-(--color-ink-muted)">
         Cargando…
       </div>
     )
