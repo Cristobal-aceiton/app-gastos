@@ -1,0 +1,46 @@
+{
+  "id": "/",
+  "name": "Gastos",
+  "short_name": "Gastos",
+  "description": "Controla tus ingresos y gastos, sin vueltas.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait",
+  "theme_color": "#0a100d",
+  "background_color": "#0a100d",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Agregar movimiento",
+      "short_name": "Agregar",
+      "url": "/add-transaction",
+      "icons": [
+        { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }
+      ]
+    }
+  ]
+}

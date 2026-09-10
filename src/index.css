@@ -1,0 +1,185 @@
+@import "tailwindcss";
+
+@theme {
+  /* Tipografía */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Fondo — negro azulado profundo (Fase 10: paleta Spendly) */
+  --color-bg: #0a0a0f;
+  --color-bg-elevated: #101018;
+  --color-surface: #141620;
+  --color-surface-hover: #1b1e2b;
+  --color-border: #22252f;
+
+  /* Texto */
+  --color-ink: #ffffff;
+  --color-ink-muted: #a0aec0;
+  --color-ink-faint: #5e6577;
+
+  /* Acentos vibrantes — verdes activos (Fase 10) */
+  --color-mint: #00d4aa; /* esmeralda brillante: totales, botones primarios, íconos */
+  --color-mint-alt: #34d399; /* verde menta: ingresos, badges positivos */
+  --color-mint-deep: #065f46; /* verde oscuro: fondos glassmorphism */
+  --color-mint-soft: #059669;
+  --color-mint-dim: #0f2420;
+
+  /* Estados financieros */
+  --color-income: #34d399;
+  --color-expense: #f87171;
+
+  /* Radios */
+  --radius-card: 1.5rem;
+  --radius-pill: 999px;
+}
+
+html {
+  color-scheme: dark;
+  /* Fondo de respaldo fijo en html/body: no depende de svh/dvh ni del alto
+     de ningún contenedor, así que nunca hay un frame en blanco cuando el
+     teclado abre y algo más abajo se reflowea. */
+  background-color: var(--color-bg);
+  background-image: radial-gradient(circle at 50% 0%, rgba(0, 212, 170, 0.05), transparent 70%);
+}
+
+body {
+  background-color: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+/* Fase 10: fondo general con gradiente radial sutil detrás del contenido,
+   en vez de un negro plano. Se aplica al shell de la app (ver AppLayout /
+   AuthShell) en lugar del body para que quede por debajo del contenido con
+   scroll pero siga cubriendo toda la pantalla. */
+.app-shell-bg {
+  background-color: var(--color-bg);
+  background-image: radial-gradient(circle at 50% 0%, rgba(0, 212, 170, 0.05), transparent 70%);
+}
+
+/* Tabular numbers para que los montos no "bailen" al animar */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Base glass + gradiente verde vibrante, usada por la tarjeta de Balance y
+   por los modales de Premium (upsell, pago, lock) para compartir identidad
+   visual. Sin animación propia: el glow pulsante y el shimmer son un extra
+   (.balance-hero) reservado solo para la tarjeta de Balance del Dashboard,
+   para que los modales con formularios no queden "ocupados" visualmente. */
+.glass-balance {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #00d4aa 0%, #059669 50%, #065f46 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.balance-hero {
+  animation: glow-pulse 3.5s ease-in-out infinite;
+  will-change: box-shadow;
+}
+
+/* Barrido de brillo ("shimmer") que cruza la tarjeta de balance */
+.balance-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.14) 40%,
+    rgba(255, 255, 255, 0.14) 44%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 24px -6px rgba(0, 212, 170, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 40px 4px rgba(0, 212, 170, 0.55);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  55%,
+  100% {
+    background-position: -60% 0;
+  }
+}
+
+/* Glassmorphism liviano para tarjetas de transacciones / estadísticas (Fase 10) */
+.card-glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Fondo con degradado sutil para separar secciones del Dashboard sin usar tarjetas */
+.section-glow-bg {
+  background: linear-gradient(180deg, rgba(0, 212, 170, 0.08) 0%, transparent 100%);
+}
+
+/* Gradiente verde reutilizable para botones/acentos primarios, con glow al hover */
+.btn-gradient-primary {
+  background: linear-gradient(135deg, #00d4aa, #34d399);
+  box-shadow: 0 0 0 rgba(0, 212, 170, 0);
+  transition: box-shadow 0.25s ease;
+}
+
+.btn-gradient-primary:hover:not(:disabled),
+.btn-gradient-primary:active:not(:disabled) {
+  box-shadow: 0 0 20px rgba(0, 212, 170, 0.4);
+}
+
+/* Botón flotante "+": pulso suave tipo "latido" para llamar la atención */
+.fab-pulse::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  background: var(--color-mint);
+  opacity: 0.35;
+  animation: heartbeat 2.4s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
+/* Respeta preferencia de movimiento reducido: apaga animaciones continuas
+   (glow, shimmer, latido) y deja solo las transiciones puntuales. */
+@media (prefers-reduced-motion: reduce) {
+  .balance-hero,
+  .balance-hero::before,
+  .fab-pulse::before {
+    animation: none;
+  }
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
