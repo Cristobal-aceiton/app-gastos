@@ -4,24 +4,33 @@
   /* Tipografía */
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  /* Fondo — negro azulado profundo (Fase 10: paleta Spendly) */
-  --color-bg: #0a0a0f;
-  --color-bg-elevated: #101018;
-  --color-surface: #141620;
-  --color-surface-hover: #1b1e2b;
-  --color-border: #22252f;
+  /* Fondo — negro profundo con matiz azul-violeta sutil (Fase 11: rediseño neón) */
+  --color-bg: #08080d;
+  --color-bg-elevated: #0e0e17;
+  --color-surface: #12121d;
+  --color-surface-hover: #191a29;
+  --color-border: #23243333;
+  --color-border-soft: rgba(255, 255, 255, 0.08);
 
   /* Texto */
   --color-ink: #ffffff;
   --color-ink-muted: #a0aec0;
   --color-ink-faint: #5e6577;
 
-  /* Acentos vibrantes — verdes activos (Fase 10) */
-  --color-mint: #00d4aa; /* esmeralda brillante: totales, botones primarios, íconos */
+  /* Acentos vibrantes — gradiente verde → cian → turquesa (Fase 11) */
+  --color-mint: #10b981; /* esmeralda: totales, íconos, texto de acento sólido */
   --color-mint-alt: #34d399; /* verde menta: ingresos, badges positivos */
   --color-mint-deep: #065f46; /* verde oscuro: fondos glassmorphism */
   --color-mint-soft: #059669;
   --color-mint-dim: #0f2420;
+  --color-cyan: #06b6d4; /* punto medio del gradiente principal */
+  --color-turquoise: #14b8a6; /* cierre del gradiente principal */
+  --color-neon-cyan: #22d3ee; /* glow / highlights */
+  --color-neon-mint: #34d399; /* glow / highlights */
+
+  /* Secundarios — contraste puntual, nunca dominan la paleta */
+  --color-violet: #8b5cf6;
+  --color-pink: #ec4899;
 
   /* Estados financieros */
   --color-income: #34d399;
@@ -59,7 +68,152 @@ body {
    scroll pero siga cubriendo toda la pantalla. */
 .app-shell-bg {
   background-color: var(--color-bg);
-  background-image: radial-gradient(circle at 50% 0%, rgba(0, 212, 170, 0.05), transparent 70%);
+  background-image: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.06), transparent 70%);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Fase 11 — Sistema "glass + neón": fondo mesh, glow, ruido y ripple      */
+/* ---------------------------------------------------------------------- */
+
+/* Contenedor del fondo mesh animado (ver <MeshBackground />). Vive detrás
+   de todo el contenido, con blur fuerte para que los blobs se vean como
+   manchas de color difuminadas, no formas nítidas. */
+.mesh-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.mesh-blob {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(110px);
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.mesh-blob--mint {
+  background: radial-gradient(circle, var(--color-mint) 0%, transparent 70%);
+  opacity: 0.35;
+  width: 60vw;
+  height: 60vw;
+  top: -15%;
+  left: -10%;
+  animation: mesh-drift-a 22s ease-in-out infinite;
+}
+
+.mesh-blob--cyan {
+  background: radial-gradient(circle, var(--color-neon-cyan) 0%, transparent 70%);
+  opacity: 0.3;
+  width: 55vw;
+  height: 55vw;
+  top: 20%;
+  right: -20%;
+  animation: mesh-drift-b 26s ease-in-out infinite;
+}
+
+.mesh-blob--violet {
+  background: radial-gradient(circle, var(--color-violet) 0%, transparent 70%);
+  opacity: 0.22;
+  width: 50vw;
+  height: 50vw;
+  bottom: -15%;
+  left: 5%;
+  animation: mesh-drift-c 30s ease-in-out infinite;
+}
+
+.mesh-blob--pink {
+  background: radial-gradient(circle, var(--color-pink) 0%, transparent 70%);
+  opacity: 0.15;
+  width: 40vw;
+  height: 40vw;
+  bottom: 10%;
+  right: 0%;
+  animation: mesh-drift-a 34s ease-in-out infinite reverse;
+}
+
+@keyframes mesh-drift-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(6%, 8%) scale(1.08); }
+}
+
+@keyframes mesh-drift-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-8%, 6%) scale(1.05); }
+}
+
+@keyframes mesh-drift-c {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(5%, -7%) scale(1.1); }
+}
+
+/* Textura de ruido sutil para evitar banding en los gradientes oscuros.
+   Se dibuja una sola vez como SVG feTurbulence y se repite; opacity muy baja
+   + mix-blend-mode para que sea casi imperceptible. */
+.noise-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Utilidades de glow reutilizables para botones, cards e íconos activos */
+.glow-mint {
+  box-shadow: 0 0 24px -4px rgba(16, 185, 129, 0.55);
+}
+.glow-cyan {
+  box-shadow: 0 0 24px -4px rgba(34, 211, 238, 0.55);
+}
+.glow-violet {
+  box-shadow: 0 0 24px -4px rgba(139, 92, 246, 0.5);
+}
+
+/* Texto con gradiente (títulos) */
+.text-gradient-primary {
+  background: linear-gradient(135deg, var(--color-mint), var(--color-cyan) 55%, var(--color-turquoise));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Borde con gradiente vía pseudo-elemento enmascarado, para cards que
+   necesitan un borde vivo en vez del border sutil blanco de .card-glass.
+   A propósito NO toca la propiedad `background` del elemento (a diferencia
+   del truco clásico de doble-gradiente padding-box/border-box), así puede
+   combinarse con `.card-glass` sin que ninguna de las dos reglas se pise:
+   el pseudo-elemento solo dibuja el borde por encima, enmascarado para que
+   solo se vea el anillo de 1px. */
+.border-gradient {
+  position: relative;
+}
+.border-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--color-mint), var(--color-cyan), var(--color-violet));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Ripple de un tap: círculo que se expande desde el punto de contacto.
+   El tamaño/posición se fija por variables inline desde el componente. */
+.ripple {
+  position: absolute;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.45) 0%, transparent 70%);
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0);
 }
 
 /* Tabular numbers para que los montos no "bailen" al animar */
@@ -75,7 +229,7 @@ body {
 .glass-balance {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #00d4aa 0%, #059669 50%, #065f46 100%);
+  background: linear-gradient(135deg, #10b981 0%, #06b6d4 55%, #065f46 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -104,10 +258,10 @@ body {
 @keyframes glow-pulse {
   0%,
   100% {
-    box-shadow: 0 0 24px -6px rgba(0, 212, 170, 0.35);
+    box-shadow: 0 0 24px -6px rgba(16, 185, 129, 0.35);
   }
   50% {
-    box-shadow: 0 0 40px 4px rgba(0, 212, 170, 0.55);
+    box-shadow: 0 0 40px 4px rgba(34, 211, 238, 0.5);
   }
 }
 
@@ -134,16 +288,25 @@ body {
   background: linear-gradient(180deg, rgba(0, 212, 170, 0.08) 0%, transparent 100%);
 }
 
-/* Gradiente verde reutilizable para botones/acentos primarios, con glow al hover */
+/* Gradiente verde→cian reutilizable para botones/acentos primarios, con
+   glow al hover y un leve desplazamiento del gradiente (sensación "viva"). */
 .btn-gradient-primary {
-  background: linear-gradient(135deg, #00d4aa, #34d399);
-  box-shadow: 0 0 0 rgba(0, 212, 170, 0);
-  transition: box-shadow 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #10b981 0%, #06b6d4 55%, #14b8a6 100%);
+  background-size: 160% 160%;
+  background-position: 0% 50%;
+  box-shadow: 0 0 0 rgba(16, 185, 129, 0);
+  transition: box-shadow 0.25s ease, background-position 0.4s ease;
 }
 
-.btn-gradient-primary:hover:not(:disabled),
+.btn-gradient-primary:hover:not(:disabled) {
+  background-position: 100% 50%;
+  box-shadow: 0 0 22px rgba(34, 211, 238, 0.45);
+}
+
 .btn-gradient-primary:active:not(:disabled) {
-  box-shadow: 0 0 20px rgba(0, 212, 170, 0.4);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.5);
 }
 
 /* Botón flotante "+": pulso suave tipo "latido" para llamar la atención */
@@ -175,7 +338,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .balance-hero,
   .balance-hero::before,
-  .fab-pulse::before {
+  .fab-pulse::before,
+  .mesh-blob {
     animation: none;
   }
 }

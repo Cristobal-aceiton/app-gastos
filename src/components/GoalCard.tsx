@@ -4,6 +4,7 @@ import { Plus, Trash2 } from 'lucide-react'
 import { formatCLP } from '../lib/format'
 import { AmountField } from './fields'
 import ConfirmDialog from './ConfirmDialog'
+import TiltCard from './TiltCard'
 import { haptics } from '../lib/haptics'
 import type { SavingsGoal } from '../types/premium'
 
@@ -42,7 +43,7 @@ export default function GoalCard({
   }
 
   return (
-    <div className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-4">
+    <TiltCard className="p-4">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate font-medium">{goal.name}</p>
@@ -109,6 +110,6 @@ export default function GoalCard({
         }}
         onCancel={() => setConfirmOpen(false)}
       />
-    </div>
+    </TiltCard>
   )
 }
