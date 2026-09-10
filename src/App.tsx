@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import AppLayout from './components/AppLayout'
 import ProtectedRoute from './components/ProtectedRoute'
+import ErrorBoundary from './components/ErrorBoundary'
 import { useAuthStore } from './store/authStore'
 import Dashboard from './pages/Dashboard'
 import AddTransaction from './pages/AddTransaction'
@@ -38,37 +39,44 @@ export default function App() {
 
   useEffect(() => {
     init()
+    // Si llegamos hasta acá, la app montó bien: limpiamos el flag de
+    // "ya recargué una vez por un chunk que falló" para que, si vuelve a
+    // fallar más adelante en esta misma sesión, se pueda reintentar de
+    // nuevo en vez de quedar bloqueado (ver main.tsx).
+    sessionStorage.removeItem('gastos:reloaded-after-preload-error')
   }, [init])
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Suspense fallback={<RouteFallback />}>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/onboarding" element={<Onboarding />} />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <Suspense fallback={<RouteFallback />}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/onboarding" element={<Onboarding />} />
 
-            <Route
-              element={
-                <ProtectedRoute>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/add-transaction" element={<AddTransaction />} />
-              <Route path="/transactions" element={<Transactions />} />
-              <Route path="/stats" element={<Stats />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/premium" element={<Premium />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/settings/categories" element={<CategoriesSettings />} />
-            </Route>
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </QueryClientProvider>
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/add-transaction" element={<AddTransaction />} />
+                <Route path="/transactions" element={<Transactions />} />
+                <Route path="/stats" element={<Stats />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/premium" element={<Premium />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/settings/categories" element={<CategoriesSettings />} />
+              </Route>
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   )
 }
