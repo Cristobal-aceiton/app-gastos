@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import BottomNav from './BottomNav'
 import PageTransition from './PageTransition'
 import MeshBackground from './MeshBackground'
@@ -19,16 +19,17 @@ export default function AppLayout() {
   const subscriptionRunnerEnabled = useFeatureFlag('subscription_runner')
   useSubscriptionRunner(subscriptionRunnerEnabled ? session?.user.id : undefined, profile?.is_premium)
 
-  // Fase 13 — fix "la sección nueva arranca a mitad de pantalla": <main> es
-  // UN SOLO contenedor con scroll que persiste entre rutas (solo cambia lo
-  // que hay dentro del <Outlet />, vía AnimatePresence/PageTransition). Si
-  // el usuario scrolleaba hacia abajo en, por ejemplo, "Movimientos" y
-  // saltaba a "Inicio", la pantalla nueva se montaba DENTRO de ese mismo
-  // contenedor, que seguía con el scrollTop viejo — la nueva sección se veía
-  // "pegada" a mitad de camino porque nunca se resetea el scroll al cambiar
-  // de ruta. Se resetea acá, sincrónico con el cambio de pathname, para que
-  // cada sección arranque siempre desde arriba.
-  useEffect(() => {
+  // Fase 13 (corregido) — fix "la sección nueva arranca a mitad de pantalla
+  // / solo se ve el fondo": <main> es UN SOLO contenedor con scroll que
+  // persiste entre rutas. Si el usuario scrolleaba hacia abajo en, por
+  // ejemplo, "Movimientos" (lista larga) y saltaba a "Inicio" o "Perfil"
+  // (contenido más corto), el scrollTop viejo seguía vigente en el primer
+  // paint de la sección nueva. Con useEffect el reseteo corre DESPUÉS de
+  // que el navegador ya pintó ese primer frame con el contenido nuevo
+  // desplazado fuera de vista — en cambios rápidos de tab eso se percibe
+  // como "no cargó" o "solo el fondo". useLayoutEffect corre antes del
+  // paint del browser, así el scroll ya está en 0 en el primer frame visible.
+  useLayoutEffect(() => {
     if (mainRef.current) mainRef.current.scrollTop = 0
   }, [location.pathname])
 

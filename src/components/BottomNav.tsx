@@ -55,8 +55,15 @@ export default function BottomNav() {
         className="mx-auto flex max-w-md items-center justify-between px-6 py-2"
         style={isLocked ? { pointerEvents: 'none' } : undefined}
       >
+        {/* Bug del overlay verde chocando con la cruz: todos los <li> son
+            "relative z-0" (mismo nivel), así que el orden de pintado entre
+            hermanos sigue el orden del DOM. El tab "Estadísticas" viene
+            DESPUÉS del FAB en `links`, así que su pill de highlight (verde,
+            -z-10 pero dentro de su propio stacking context) terminaba
+            pintándose ENCIMA del botón "+" cuando se solapaban. z-20 en el
+            <li> del FAB lo saca de ese orden y lo deja siempre arriba. */}
         {links.map(({ to, label, icon: Icon, isFab, end }) => (
-          <li key={to} className="flex flex-1 justify-center">
+          <li key={to} className={`flex flex-1 justify-center ${isFab ? 'relative z-20' : ''}`}>
             <NavLink
               to={to}
               end={end}
