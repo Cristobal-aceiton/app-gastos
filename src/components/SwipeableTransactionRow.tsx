@@ -65,7 +65,7 @@ export default function SwipeableTransactionRow({ transaction }: { transaction: 
         transition={{ type: 'spring', stiffness: 500, damping: 40 }}
         onDragEnd={handleDragEnd}
         onClick={() => isOpen && closeSwipe()}
-        className="card-glass relative flex w-full min-w-0 select-none items-center gap-3 rounded-(--radius-card) px-4 py-3.5"
+        className="relative flex w-full min-w-0 select-none items-center gap-3 rounded-(--radius-card) border border-(--color-border) bg-(--color-surface) px-4 py-3.5"
       >
         <span
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
