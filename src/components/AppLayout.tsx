@@ -4,12 +4,17 @@ import BottomNav from './BottomNav'
 import PageTransition from './PageTransition'
 import { useAuthStore } from '../store/authStore'
 import { useSubscriptionRunner } from '../hooks/useSubscriptionRunner'
+import { useFeatureFlag } from '../lib/featureFlags'
 
 export default function AppLayout() {
   const { session, profile } = useAuthStore()
   const location = useLocation()
-  // Fase 6: cobra suscripciones automáticas del usuario Premium al abrir la app.
-  useSubscriptionRunner(session?.user.id, profile?.is_premium)
+  // Fase 6: cobra suscripciones automáticas del usuario Premium al abrir la
+  // app. Plan de remodelación, Fase 1: pasa por un feature flag remoto — si
+  // apareciera un bug de cobros duplicados/incorrectos, se apaga desde
+  // Supabase (tabla feature_flags) sin esperar un deploy.
+  const subscriptionRunnerEnabled = useFeatureFlag('subscription_runner')
+  useSubscriptionRunner(subscriptionRunnerEnabled ? session?.user.id : undefined, profile?.is_premium)
 
   return (
     <div className="app-shell-bg mx-auto flex min-h-svh max-w-md flex-col">

@@ -64,14 +64,73 @@ export default function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/add-transaction" element={<AddTransaction />} />
-                <Route path="/transactions" element={<Transactions />} />
-                <Route path="/stats" element={<Stats />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/premium" element={<Premium />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/settings/categories" element={<CategoriesSettings />} />
+                {/* Cada pantalla del tab bar tiene su propio boundary de sección
+                    (Plan de remodelación, Fase 1): si una explota, el resto de
+                    la app (incluido el BottomNav) sigue andando. */}
+                <Route
+                  path="/"
+                  element={
+                    <ErrorBoundary level="section" label="dashboard">
+                      <Dashboard />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/add-transaction"
+                  element={
+                    <ErrorBoundary level="section" label="add-transaction">
+                      <AddTransaction />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/transactions"
+                  element={
+                    <ErrorBoundary level="section" label="transactions">
+                      <Transactions />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/stats"
+                  element={
+                    <ErrorBoundary level="section" label="stats">
+                      <Stats />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ErrorBoundary level="section" label="profile">
+                      <Profile />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/premium"
+                  element={
+                    <ErrorBoundary level="section" label="premium">
+                      <Premium />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ErrorBoundary level="section" label="settings">
+                      <Settings />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/settings/categories"
+                  element={
+                    <ErrorBoundary level="section" label="categories-settings">
+                      <CategoriesSettings />
+                    </ErrorBoundary>
+                  }
+                />
               </Route>
             </Routes>
           </Suspense>

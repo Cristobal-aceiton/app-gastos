@@ -2,6 +2,20 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { reportError } from './lib/errorReporting'
+
+// Plan de remodelación, Fase 1 — el ErrorBoundary de React solo atrapa
+// errores de render. Un error en un `.then()`, un `setTimeout`, o cualquier
+// callback fuera del ciclo de render de React se le escapa por completo y
+// termina en la consola sin que nadie se entere. Estos dos listeners son la
+// red de seguridad para todo lo demás.
+window.addEventListener('error', (event) => {
+  reportError(event.error ?? event.message, { source: 'window.onerror' })
+})
+
+window.addEventListener('unhandledrejection', (event) => {
+  reportError(event.reason, { source: 'unhandledrejection' })
+})
 
 // Si un chunk (ej. Login.tsx, cargado con lazy()) falla al descargarse —
 // típico en redes móviles inestables, o justo después de un deploy nuevo

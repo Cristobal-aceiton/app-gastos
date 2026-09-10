@@ -258,3 +258,54 @@ begin
       add constraint notifications_log_user_kind_ref_period_key unique (user_id, kind, ref_id, period_key);
   end if;
 end $$;
+
+-- Plan de remodelación, Fase 1: logging de errores del cliente.
+-- Solo escritura desde el cliente (anon/authenticated pueden insertar,
+-- nadie puede leer salvo el service_role) — es telemetría, no algo que la
+-- propia app necesite volver a leer. Para ver los errores reportados: Table
+-- Editor de Supabase, o una vista de admin más adelante.
+create table if not exists client_errors (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  source text not null,
+  message text not null,
+  stack text,
+  context jsonb,
+  url text,
+  user_agent text,
+  created_at timestamp with time zone default now()
+);
+
+alter table client_errors enable row level security;
+
+create policy "client_errors: cualquiera puede insertar" on client_errors
+  for insert
+  with check (true);
+
+-- Nota: a propósito NO hay policy de select/update/delete para anon ni
+-- authenticated — leer y limpiar esta tabla es tarea de admin (service_role).
+
+-- Plan de remodelación, Fase 1: feature flags / kill switch sin deploy.
+-- Cualquiera puede LEER los flags (así el cliente sabe si una función está
+-- prendida o apagada); solo el service_role puede escribir — cambiar un
+-- flag se hace desde el Table Editor de Supabase, nunca desde el cliente.
+create table if not exists feature_flags (
+  key text primary key,
+  enabled boolean not null default true,
+  description text,
+  updated_at timestamp with time zone default now()
+);
+
+alter table feature_flags enable row level security;
+
+create policy "feature_flags: cualquiera puede leer" on feature_flags
+  for select
+  using (true);
+
+-- Seed de los flags conocidos (ver DEFAULT_FLAGS en src/lib/featureFlags.ts).
+-- Si no corrés este seed, la app sigue funcionando igual: el cliente cae a
+-- los defaults locales cuando la tabla está vacía.
+insert into feature_flags (key, enabled, description) values
+  ('subscription_runner', true, 'Cobro automático de suscripciones Premium al abrir la app (Fase 6). Apagar acá si hay un bug de cobros duplicados/incorrectos, sin esperar un deploy.'),
+  ('push_notifications', true, 'Notificaciones push (Fase 13.1-13.3).')
+on conflict (key) do nothing;
