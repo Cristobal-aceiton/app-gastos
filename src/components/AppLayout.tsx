@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
+import { useEffect, useRef } from 'react'
 import BottomNav from './BottomNav'
 import PageTransition from './PageTransition'
 import MeshBackground from './MeshBackground'
@@ -10,6 +11,7 @@ import { useFeatureFlag } from '../lib/featureFlags'
 export default function AppLayout() {
   const { session, profile } = useAuthStore()
   const location = useLocation()
+  const mainRef = useRef<HTMLElement>(null)
   // Fase 6: cobra suscripciones automáticas del usuario Premium al abrir la
   // app. Plan de remodelación, Fase 1: pasa por un feature flag remoto — si
   // apareciera un bug de cobros duplicados/incorrectos, se apaga desde
@@ -17,13 +19,26 @@ export default function AppLayout() {
   const subscriptionRunnerEnabled = useFeatureFlag('subscription_runner')
   useSubscriptionRunner(subscriptionRunnerEnabled ? session?.user.id : undefined, profile?.is_premium)
 
+  // Fase 13 — fix "la sección nueva arranca a mitad de pantalla": <main> es
+  // UN SOLO contenedor con scroll que persiste entre rutas (solo cambia lo
+  // que hay dentro del <Outlet />, vía AnimatePresence/PageTransition). Si
+  // el usuario scrolleaba hacia abajo en, por ejemplo, "Movimientos" y
+  // saltaba a "Inicio", la pantalla nueva se montaba DENTRO de ese mismo
+  // contenedor, que seguía con el scrollTop viejo — la nueva sección se veía
+  // "pegada" a mitad de camino porque nunca se resetea el scroll al cambiar
+  // de ruta. Se resetea acá, sincrónico con el cambio de pathname, para que
+  // cada sección arranque siempre desde arriba.
+  useEffect(() => {
+    if (mainRef.current) mainRef.current.scrollTop = 0
+  }, [location.pathname])
+
   return (
     <div className="app-shell-bg relative mx-auto flex min-h-svh max-w-md flex-col isolate">
       <MeshBackground />
       {/* relative + z-10: fija el contexto de posicionamiento para
           AnimatePresence en modo "popLayout" (ver nota abajo) y asegura que
           el contenido quede por encima del <MeshBackground /> decorativo. */}
-      <main className="relative z-10 flex-1 overflow-y-auto px-5 pb-28 pt-8">
+      <main ref={mainRef} className="relative z-10 flex-1 overflow-y-auto px-5 pb-28 pt-8">
         {/* Fase 7: transición suave entre pantallas del tab bar, sin desmontar BottomNav.
             mode="popLayout" (en vez de "wait"): con "wait" la pantalla saliente
             se desmonta del todo ANTES de montar la entrante, y durante ese hueco
