@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion, useAnimation, useMotionValue, type PanInfo } from 'framer-motion'
+import { motion, type PanInfo } from 'framer-motion'
 import { Trash2 } from 'lucide-react'
 import { getCategory } from '../lib/categories'
 import { formatCLP, dateLabel } from '../lib/format'
@@ -15,22 +15,25 @@ export default function SwipeableTransactionRow({ transaction }: { transaction: 
   const Icon = category.icon
   const isExpense = transaction.type === 'expense'
 
-  const x = useMotionValue(0)
-  const controls = useAnimation()
+  // Antes esto se manejaba con un useMotionValue (x) pasado por `style` Y,
+  // al mismo tiempo, con un useAnimation() pasado por `animate`. Son dos
+  // sistemas independientes escribiendo la misma propiedad `x`: cualquier
+  // re-render del padre (ej. al invalidar la query después de borrar otro
+  // movimiento) podía hacer que la fila "olvidara" el valor y volviera a 0,
+  // lo que se sentía como "deslizo y el texto se regresa solo". Ahora hay
+  // una sola fuente de verdad (este estado) y `animate` sigue siempre a ella.
+  const [isOpen, setIsOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const deleteMutation = useDeleteTransaction()
 
   function handleDragEnd(_: unknown, info: PanInfo) {
-    if (info.offset.x < -DELETE_WIDTH / 2) {
-      haptics.light()
-      controls.start({ x: -DELETE_WIDTH })
-    } else {
-      controls.start({ x: 0 })
-    }
+    const shouldOpen = info.offset.x < -DELETE_WIDTH / 2 || info.velocity.x < -500
+    if (shouldOpen) haptics.light()
+    setIsOpen(shouldOpen)
   }
 
   function closeSwipe() {
-    controls.start({ x: 0 })
+    setIsOpen(false)
   }
 
   function handleConfirmDelete() {
@@ -40,7 +43,7 @@ export default function SwipeableTransactionRow({ transaction }: { transaction: 
   }
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative w-full overflow-hidden">
       <div className="absolute inset-y-0 right-0 flex w-[84px] items-stretch">
         <button
           type="button"
@@ -57,10 +60,12 @@ export default function SwipeableTransactionRow({ transaction }: { transaction: 
         dragDirectionLock
         dragConstraints={{ left: -DELETE_WIDTH, right: 0 }}
         dragElastic={0.02}
-        style={{ x }}
-        animate={controls}
+        dragMomentum={false}
+        animate={{ x: isOpen ? -DELETE_WIDTH : 0 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 40 }}
         onDragEnd={handleDragEnd}
-        className="relative flex items-center gap-3 bg-(--color-bg) py-3"
+        onClick={() => isOpen && closeSwipe()}
+        className="relative flex w-full min-w-0 select-none items-center gap-3 bg-(--color-bg) py-3"
       >
         <span
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
@@ -70,11 +75,13 @@ export default function SwipeableTransactionRow({ transaction }: { transaction: 
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{transaction.description || category.label}</p>
-          <p className="text-xs text-(--color-ink-muted)">
+          <p className="truncate text-xs text-(--color-ink-muted)">
             {category.label} · {dateLabel(transaction.date)}
           </p>
         </div>
-        <p className={`tabular-nums font-semibold ${isExpense ? 'text-(--color-expense)' : 'text-(--color-income)'}`}>
+        <p
+          className={`shrink-0 tabular-nums font-semibold ${isExpense ? 'text-(--color-expense)' : 'text-(--color-income)'}`}
+        >
           {isExpense ? '-' : '+'}
           {formatCLP(transaction.amount)}
         </p>

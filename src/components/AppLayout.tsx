@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import BottomNav from './BottomNav'
@@ -17,7 +18,17 @@ export default function AppLayout() {
         {/* Fase 7: transición suave entre pantallas del tab bar, sin desmontar BottomNav */}
         <AnimatePresence mode="wait" initial={false}>
           <PageTransition key={location.pathname}>
-            <Outlet />
+            {/* Boundary de Suspense local: si el chunk de la pantalla (lazy)
+                todavía no cargó, solo se vacía este contenedor (main sigue
+                montado). Antes el único <Suspense> vivía arriba de todo en
+                App.tsx, envolviendo también a AppLayout: cada vez que se
+                entraba a una sección nueva de la nav bar, React desmontaba
+                TODO el layout (incluyendo el BottomNav) y mostraba el
+                fallback de pantalla completa (fondo #0a0a0f = pantalla
+                "negra") hasta que el chunk terminaba de bajar. */}
+            <Suspense fallback={null}>
+              <Outlet />
+            </Suspense>
           </PageTransition>
         </AnimatePresence>
       </main>
