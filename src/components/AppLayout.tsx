@@ -1,6 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
-import { useLayoutEffect, useRef } from 'react'
 import BottomNav from './BottomNav'
 import PageTransition from './PageTransition'
 import MeshBackground from './MeshBackground'
@@ -11,7 +10,6 @@ import { useFeatureFlag } from '../lib/featureFlags'
 export default function AppLayout() {
   const { session, profile } = useAuthStore()
   const location = useLocation()
-  const mainRef = useRef<HTMLElement>(null)
   // Fase 6: cobra suscripciones automáticas del usuario Premium al abrir la
   // app. Plan de remodelación, Fase 1: pasa por un feature flag remoto — si
   // apareciera un bug de cobros duplicados/incorrectos, se apaga desde
@@ -19,27 +17,33 @@ export default function AppLayout() {
   const subscriptionRunnerEnabled = useFeatureFlag('subscription_runner')
   useSubscriptionRunner(subscriptionRunnerEnabled ? session?.user.id : undefined, profile?.is_premium)
 
-  // Fase 13 (corregido) — fix "la sección nueva arranca a mitad de pantalla
-  // / solo se ve el fondo": <main> es UN SOLO contenedor con scroll que
-  // persiste entre rutas. Si el usuario scrolleaba hacia abajo en, por
-  // ejemplo, "Movimientos" (lista larga) y saltaba a "Inicio" o "Perfil"
-  // (contenido más corto), el scrollTop viejo seguía vigente en el primer
-  // paint de la sección nueva. Con useEffect el reseteo corre DESPUÉS de
-  // que el navegador ya pintó ese primer frame con el contenido nuevo
-  // desplazado fuera de vista — en cambios rápidos de tab eso se percibe
-  // como "no cargó" o "solo el fondo". useLayoutEffect corre antes del
-  // paint del browser, así el scroll ya está en 0 en el primer frame visible.
-  useLayoutEffect(() => {
-    if (mainRef.current) mainRef.current.scrollTop = 0
-  }, [location.pathname])
-
+  // Fase 14 — fix definitivo del scroll fantasma entre secciones: antes
+  // <main> era el contenedor con scroll (overflow-y-auto) Y ADEMÁS el
+  // ancestro posicionado que usa AnimatePresence mode="popLayout" para
+  // calcular dónde queda la pantalla saliente. Ese cálculo lo hace Framer
+  // Motion en un useLayoutEffect de un componente HIJO, y React siempre
+  // corre los layout effects de los hijos ANTES que los del padre — así
+  // que el reseteo de scrollTop en <main> (que vivía acá, en AppLayout)
+  // corría DESPUÉS de que Framer ya había capturado la posición de la
+  // pantalla saliente usando el scroll viejo. Resultado: la sección nueva
+  // podía quedar desplazada hacia abajo, a mitad de pantalla, o
+  // directamente fuera de vista — y cambiar de tab rápido lo hacía más
+  // frecuente porque encadenaba más resets compitiendo con esa captura.
+  //
+  // La solución no es ganarle la carrera al timing (frágil), sino sacar el
+  // scroll de <main> por completo. Ahora <main> nunca scrollea
+  // (overflow-hidden) y el scroll vive en un <div> DENTRO de
+  // PageTransition, que se desmonta y monta de cero en cada cambio de
+  // ruta (porque está bajo el key={pathname}). Un nodo del DOM recién
+  // creado siempre arranca con scrollTop 0 de forma nativa, sin necesitar
+  // ningún reseteo manual ni depender del orden de efectos.
   return (
     <div className="app-shell-bg relative mx-auto flex min-h-svh max-w-md flex-col isolate">
       <MeshBackground />
       {/* relative + z-10: fija el contexto de posicionamiento para
           AnimatePresence en modo "popLayout" (ver nota abajo) y asegura que
           el contenido quede por encima del <MeshBackground /> decorativo. */}
-      <main ref={mainRef} className="relative z-10 flex-1 overflow-y-auto px-5 pb-28 pt-8">
+      <main className="relative z-10 flex-1 overflow-hidden">
         {/* Fase 7: transición suave entre pantallas del tab bar, sin desmontar BottomNav.
             mode="popLayout" (en vez de "wait"): con "wait" la pantalla saliente
             se desmonta del todo ANTES de montar la entrante, y durante ese hueco
@@ -50,17 +54,27 @@ export default function AppLayout() {
 
             Fase 11 — fix del "freeze a mitad de transición": popLayout saca la
             pantalla saliente del flujo con position:absolute, posicionada
-            respecto al ANCESTRO POSICIONADO MÁS CERCANO. Este <main> es ese
-            contenedor con scroll, pero antes no tenía position:relative, así
-            que el navegador buscaba más arriba en el árbol; según el resto del
-            layout, la pantalla saliente podía terminar posicionada fuera del
-            viewport visible o superpuesta de forma incorrecta con el
-            BottomNav durante los ~220ms de la animación — visualmente
-            indistinguible de una pantalla "trabada". Al declarar `relative`
-            aquí, la saliente queda anclada exactamente donde debía estar. */}
+            respecto al ANCESTRO POSICIONADO MÁS CERCANO, que es este <main>.
+            Antes <main> no tenía position:relative, así que el navegador
+            buscaba más arriba en el árbol; según el resto del layout, la
+            pantalla saliente podía terminar posicionada fuera del viewport
+            visible o superpuesta de forma incorrecta con el BottomNav
+            durante los ~220ms de la animación — visualmente indistinguible
+            de una pantalla "trabada". Al declarar `relative` aquí, la
+            saliente queda anclada exactamente donde debía estar.
+
+            Importante (ver Fase 14 más arriba): <main> ya NO tiene scroll
+            propio (es overflow-hidden), así que este cálculo de posición
+            siempre corre sobre un ancestro con scrollTop fijo en 0 — no hay
+            forma de que quede "corrido" por un scroll viejo. */}
         <AnimatePresence mode="popLayout" initial={false}>
           <PageTransition key={location.pathname}>
-            <Outlet />
+            {/* Este div es el que scrollea (no <main>). Al vivir dentro del
+                key={location.pathname}, es un nodo del DOM nuevo en cada
+                navegación, así que siempre arranca con scrollTop 0. */}
+            <div className="h-full overflow-y-auto px-5 pb-28 pt-8">
+              <Outlet />
+            </div>
           </PageTransition>
         </AnimatePresence>
       </main>

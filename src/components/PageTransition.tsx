@@ -25,6 +25,7 @@ export default function PageTransition({ children }: { children: ReactNode }) {
       initial="initial"
       animate="animate"
       exit="exit"
+      className="h-full"
       style={{ willChange: 'transform, opacity' }}
     >
       {children}
